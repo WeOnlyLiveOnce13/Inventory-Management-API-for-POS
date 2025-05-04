@@ -3,12 +3,171 @@
 
 // Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+// ? : Not required
 
 generator client {
   provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
 }
 
 datasource db {
   provider = "mongodb"
   url      = env("DATABASE_URL")
 }
+
+enum Gender {
+  MALE
+  FEMALE
+}
+
+enum Role {
+  ADMIN
+  ATTENDANT
+}
+
+enum CustomerType {
+  RETAIL
+  WHOLESALE
+  DISTRIBUTOR
+  OTHER
+}
+
+enum SupplierType {
+  MANUFACTURER
+  DISTRIBUTOR
+  WHOLESALE
+  RETAILER
+  OTHER
+}
+
+model Customer {
+  id              String    @id @default(auto()) @map("_id") @db.ObjectId
+  customerType    CustomerType
+  firstName       String
+  lastName        String
+  phone           String   @unique
+  gender          Gender
+  maxCreditLimmit Float
+  maxCreditDays   Int
+  taxPin          String?
+  dob             DateTime?
+  email           String?    @unique
+  nationalID      String?    @unique
+  country         String
+  location        String      
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @default(now())
+}
+
+
+model User {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  email       String   @unique
+  username    String   @unique
+  password    String
+  firstName   String
+  lastName    String
+  phone       String   @unique
+  dob         DateTime?
+  gender      Gender
+  image       String?
+  Role        Role      @default(ATTENDANT)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  shops       Shop[]
+}
+
+
+
+model Shop {
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  name          String
+  slug          String    @unique   
+  location      String
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  adminId       String    @db.ObjectId
+  admin         User      @relation(fields: [adminId], references: [id])
+  attendantIds  String[]  @db.ObjectId
+}
+
+model Product {
+  id                  String    @id @default(auto()) @map("_id") @db.ObjectId
+  name                String
+  description         String?
+  batchNumber         String?
+  barCode             String?   @unique
+  image               String?   @default("https://tyl6h7aevo.ufs.sh/f/vntTK41Y2gFO1KgICJR0YcXHobS4FKTvDkPJde9UjzhM65mV")
+  tax                 Int?
+  alertQty            Int
+  stockQty            Int
+  price               Int
+  buyingPrice         Int?
+  sku                 String    @unique
+  productCode         String    @unique
+  slug                String    @unique
+  supplierId          String    @db.ObjectId
+  unitId              String    @db.ObjectId
+  brandId             String    @db.ObjectId
+  categoryId          String    @db.ObjectId
+  expiryDate          DateTime? @default("2025-12-31T23:59:59Z")
+  unit                Unit      @relation(fields: [unitId], references: [id])
+  brand               Brand     @relation(fields: [brandId], references: [id])
+  category            Category  @relation(fields: [categoryId], references: [id])
+  supplier            Supplier  @relation(fields: [supplierId], references: [id])
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+}
+
+
+model Supplier {
+  id                  String    @id @default(auto()) @map("_id") @db.ObjectId
+  supplierType        SupplierType
+  name                String
+  contactPerson       String
+  phone               String   @unique
+  email               String?  @unique
+  location            String
+  country             String
+  website             String?
+  taxPin              String?
+  products            Product[]
+  registrationNumber  String?  @unique
+  bankAccountNumber   String?
+  bankName            String?
+  paymentTerms        String?
+  logo                String?  @default("https://tyl6h7aevo.ufs.sh/f/vntTK41Y2gFO1KgICJR0YcXHobS4FKTvDkPJde9UjzhM65mV")
+  rating              Float?
+  notes               String?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @default(now())
+}
+
+model Unit {
+  id                  String    @id @default(auto()) @map("_id") @db.ObjectId
+  name                String
+  abbreviation        String
+  slug                String    @unique
+  products            Product[]
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+}
+
+model Brand {
+  id                  String    @id @default(auto()) @map("_id") @db.ObjectId
+  name                String
+  slug                String    @unique
+  products            Product[]
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+}
+
+model Category {
+  id                  String    @id @default(auto()) @map("_id") @db.ObjectId
+  name                String
+  slug                String    @unique
+  products            Product[]
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+}
+
